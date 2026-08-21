@@ -1,0 +1,16 @@
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+
+# Virtual environments
+.venv
+
+# Test / commissioning artifacts
+.pytest_cache/
+*_X11_COMMISSIONING.json
+CLAUDE_X11_COMMISSIONING.json
+CHATGPT_X11_COMMISSIONING.json

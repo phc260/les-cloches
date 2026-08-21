@@ -1,0 +1,23 @@
+[project]
+name = "les-cloches"
+version = "0.1.0"
+description = "Semantic desktop automation for corresponding with AI applications through their visible interfaces."
+readme = "README.md"
+authors = [
+    { name = "phc260", email = "phc260@nyu.edu" }
+]
+requires-python = ">=3.12"
+# AT-SPI (Atspi 2.0) and GDK 4 come from the system's PyGObject (python3-gi,
+# gir1.2-atspi-2.0) rather than a pip package; see README.md.
+dependencies = []
+
+[project.optional-dependencies]
+test = ["pytest>=8"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = ["live: opt-in tests that control a real desktop application"]
+
+[build-system]
+requires = ["uv_build>=0.12.1,<0.13.0"]
+build-backend = "uv_build"
