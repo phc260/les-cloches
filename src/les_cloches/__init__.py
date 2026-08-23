@@ -9,16 +9,17 @@ applications through their visible interfaces.
     chatgpt = ChatGPT()
     reply = chatgpt.send("Reply with exactly: PONG")
 
-v0.1 supports Claude Desktop and ChatGPT Desktop on Linux/X11 only. Windows
-11 is recognized but unverified and unsupported. See README.md for the
-mechanism and ARCHITECTURE.md for why it is shaped this way.
+v0.1 supports Claude Desktop and ChatGPT Desktop on Linux/X11. An explicit
+Windows 11 UI Automation backend is under development but remains gated until
+commissioning. See README.md for current status and ARCHITECTURE.md for why
+the package is shaped this way.
 """
 
 from __future__ import annotations
 
 from . import transport as _transport
-from .apps.chatgpt import ChatGPTAdapter, ChatGPTSemantics
-from .apps.claude import ClaudeAdapter
+from .apps.linux.chatgpt import ChatGPTAdapter, ChatGPTSemantics
+from .apps.linux.claude import ClaudeAdapter
 from .core.errors import (
     LesClochesBusy,
     LesClochesError,
@@ -28,7 +29,6 @@ from .core.errors import (
     UnsupportedPlatform,
 )
 from .core.platforms import PlatformSupport, current_platform_support, require_supported_platform
-from .input.x11 import X11ClipboardInput
 
 __all__ = [
     "Claude",
@@ -54,9 +54,18 @@ class Claude:
         allow_restart_existing_session: bool = False,
         lock_path: "str | None" = None,
     ) -> None:
-        require_supported_platform()
-        self._adapter = ClaudeAdapter()
-        self._input = X11ClipboardInput()
+        status = require_supported_platform()
+        if status.platform == "Windows 11":
+            from .apps.windows.claude import WindowsClaudeAdapter
+            from .input.windows import WindowsClipboardInput
+
+            self._adapter = WindowsClaudeAdapter()
+            self._input = WindowsClipboardInput()
+        else:
+            from .input.x11 import X11ClipboardInput
+
+            self._adapter = ClaudeAdapter()
+            self._input = X11ClipboardInput()
         self._allow_restart_existing_session = allow_restart_existing_session
         self._lock_path = lock_path
 
@@ -81,9 +90,20 @@ class ChatGPT:
         lock_path: "str | None" = None,
         semantics: "ChatGPTSemantics | None" = None,
     ) -> None:
-        require_supported_platform()
-        self._adapter = ChatGPTAdapter(semantics=semantics)
-        self._input = X11ClipboardInput()
+        status = require_supported_platform()
+        if status.platform == "Windows 11":
+            if semantics is not None:
+                raise LesClochesError("custom ChatGPT AT-SPI semantics are not applicable on Windows")
+            from .apps.windows.chatgpt import WindowsChatGPTAdapter
+            from .input.windows import WindowsClipboardInput
+
+            self._adapter = WindowsChatGPTAdapter()
+            self._input = WindowsClipboardInput()
+        else:
+            from .input.x11 import X11ClipboardInput
+
+            self._adapter = ChatGPTAdapter(semantics=semantics)
+            self._input = X11ClipboardInput()
         self._allow_restart_existing_session = allow_restart_existing_session
         self._lock_path = lock_path
 

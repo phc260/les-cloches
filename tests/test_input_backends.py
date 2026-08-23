@@ -1,5 +1,9 @@
+import pytest
+
 import les_cloches.input.x11 as x11_module
 from les_cloches.input.x11 import X11ClipboardInput
+
+pytestmark = pytest.mark.easy
 
 
 def test_x11_backend_resolves_semantic_owner_process():

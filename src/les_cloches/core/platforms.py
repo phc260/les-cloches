@@ -1,9 +1,6 @@
 """Explicit platform classification for the public desktop API.
 
-Platform awareness is deliberately separate from platform support.  In
-particular, recognizing Windows 11 lets Les Cloches fail with an accurate,
-actionable status instead of crashing on a POSIX import, but does not imply
-that a Windows accessibility or input backend exists.
+Platform awareness is deliberately separate from commissioning status.
 """
 
 from __future__ import annotations
@@ -59,9 +56,11 @@ def current_platform_support() -> PlatformSupport:
             supported=False,
             commissioned=False,
             detail=(
-                f"{name} is recognized but unverified and unsupported. Les Cloches "
-                "does not yet have a commissioned Windows UI Automation and input "
-                "backend; no desktop action was attempted."
+                "Windows 11 has an explicit Microsoft UI Automation and SendInput "
+                "backend under development, but it remains unverified and unsupported "
+                "until live commissioning evidence is persisted; no desktop action was attempted."
+                if name == "Windows 11"
+                else f"{name} is recognized but unsupported; Windows 11 is required."
             ),
         )
 

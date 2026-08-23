@@ -11,6 +11,8 @@ from les_cloches.core.recovery import (
 )
 from les_cloches.core.session import SessionOwnership, SessionState
 
+pytestmark = pytest.mark.medium
+
 
 def snapshot(health):
     return HealthSnapshot(
@@ -39,7 +41,7 @@ class PolicyApp:
             pass
         return self.current
 
-    def launch(self):
+    def launch(self, deadline):
         self.launches += 1
 
     def terminate_for_recovery(self, session, deadline):
@@ -64,8 +66,8 @@ def test_failed_recovery_never_restarts_twice():
     app = PolicyApp([RendererHealth.FRAME_ONLY, RendererHealth.FRAME_ONLY, RendererHealth.FRAME_ONLY])
     session = SessionState(ownership=SessionOwnership.BRIDGE_OWNED)
     # The renderer never becomes healthy, so `_wait_ready` genuinely exhausts
-    # the deadline; use a short, finite one instead of the fixed 3-iteration
-    # bound the old inheritance-based fake used.
+    # the deadline; use a short, finite one instead of the earlier fake's
+    # fixed three-iteration bound.
     deadline = time.monotonic() + 0.05
     with pytest.raises(LesClochesUnavailable):
         ensure_ready(app, session, deadline, allow_restart_existing_session=False, poll_interval=0.01)

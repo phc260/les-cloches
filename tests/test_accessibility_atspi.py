@@ -1,4 +1,8 @@
+import pytest
+
 from les_cloches.accessibility.atspi import find_all, name, press_named_action, role, safe, walk
+
+pytestmark = pytest.mark.easy
 
 
 class Node:

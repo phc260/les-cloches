@@ -24,8 +24,10 @@ user-facing contract, `ARCHITECTURE.md` for architectural rationale, and
 ## Architecture boundaries
 
 - `src/les_cloches/transport.py` owns the shared transaction algorithm.
-- `src/les_cloches/apps/claude.py` and `apps/chatgpt.py` independently own
-  their application-specific tree semantics and response-ownership rules.
+- `src/les_cloches/apps/linux/claude.py` and `apps/linux/chatgpt.py`
+  independently own Linux/X11 application semantics and response-ownership
+  rules. The corresponding modules under `apps/windows/` independently own
+  the Windows UI Automation semantics and response-ownership rules.
 - Do not introduce a shared adapter base class, selector DSL, plugin registry,
   or generic tree model merely for symmetry. Promote behavior into shared code
   only when it is genuinely identical and application-agnostic.
@@ -48,6 +50,10 @@ user-facing contract, `ARCHITECTURE.md` for architectural rationale, and
 
 ## Testing and evidence
 
+- Every test must have exactly one execution-scope marker: `easy` for isolated
+  deterministic tests, `medium` for cross-module or OS-boundary tests, or
+  `hard` for end-to-end desktop tests. Keep `live` as the independent opt-in
+  safety marker for tests that control real applications.
 - Run the non-live suite after code changes:
 
   ```bash

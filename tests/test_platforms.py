@@ -5,6 +5,8 @@ from les_cloches.core.errors import UnsupportedPlatform
 from les_cloches.core.platforms import require_supported_platform
 from les_cloches.core.session import TransactionLock, default_lock_path
 
+pytestmark = pytest.mark.easy
+
 
 def set_host(monkeypatch, *, system: str, release: str = "", version: str = "") -> None:
     monkeypatch.setattr("les_cloches.core.platforms.platform.system", lambda: system)
@@ -25,7 +27,7 @@ def test_linux_x11_is_the_commissioned_surface(monkeypatch):
     assert require_supported_platform() == status
 
 
-def test_windows_11_is_recognized_but_not_claimed_as_supported(monkeypatch):
+def test_windows_11_backend_remains_gated_pending_live_commissioning(monkeypatch):
     set_host(monkeypatch, system="Windows", release="10", version="10.0.22631")
 
     status = current_platform_support()
@@ -34,12 +36,13 @@ def test_windows_11_is_recognized_but_not_claimed_as_supported(monkeypatch):
     assert status.recognized is True
     assert status.supported is False
     assert status.commissioned is False
-    with pytest.raises(UnsupportedPlatform, match="recognized but unverified and unsupported"):
+    assert "backend under development" in status.detail
+    with pytest.raises(UnsupportedPlatform, match="unverified and unsupported"):
         require_supported_platform()
 
 
 @pytest.mark.parametrize("client", [Claude, ChatGPT])
-def test_public_clients_reject_windows_before_desktop_access(monkeypatch, client):
+def test_public_clients_remain_gated_on_windows_before_desktop_access(monkeypatch, client):
     set_host(monkeypatch, system="Windows", release="11", version="10.0.26100")
 
     with pytest.raises(UnsupportedPlatform, match="no desktop action was attempted"):
@@ -60,11 +63,12 @@ def test_wayland_is_explicitly_unavailable_without_fallback(monkeypatch):
         require_supported_platform()
 
 
-def test_non_posix_lock_fails_clearly_instead_of_using_fcntl(monkeypatch, tmp_path):
+def test_missing_lock_backends_fail_clearly(monkeypatch, tmp_path):
     monkeypatch.setattr("les_cloches.core.session.fcntl", None)
+    monkeypatch.setattr("les_cloches.core.session.msvcrt", None)
     lock = TransactionLock(tmp_path / "windows-aware.lock")
 
-    with pytest.raises(UnsupportedPlatform, match="Windows cross-process desktop locking"):
+    with pytest.raises(Exception, match="no cross-process file-locking backend"):
         lock.acquire(float("inf"))
 
 

@@ -1,1 +1,1 @@
-"""Visible input backends. X11/XTEST is the only one v0.1 supports."""
+"""Visible input backends for commissioned X11 and the unsupported Windows prototype."""

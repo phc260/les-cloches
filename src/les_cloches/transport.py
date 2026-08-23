@@ -43,14 +43,14 @@ class TransactionState:
 
 class DesktopAdapter(Protocol):
     """The semantic contract the shared transport expects an application
-    adapter to satisfy. See `les_cloches/apps/claude.py` and
-    `les_cloches/apps/chatgpt.py` for the two implementations; nothing here
+    adapter to satisfy. See the platform-specific implementations under
+    `les_cloches/apps/linux/` and `les_cloches/apps/windows/`; nothing here
     assumes they share an accessibility-tree shape."""
 
     desktop_label: str
 
     def health_snapshot(self) -> HealthSnapshot: ...
-    def launch(self) -> None: ...
+    def launch(self, deadline: float) -> None: ...
     def terminate_for_recovery(self, session: SessionState, deadline: float) -> None: ...
     def existing_process_id(self) -> "int | None": ...
 

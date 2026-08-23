@@ -1,0 +1,10 @@
+# Locally generated diagnostic reports and artifacts
+*.json
+*.html
+*.md
+*.txt
+*.log
+*.tmp
+
+# Keep permanent directory documentation trackable
+!README.md

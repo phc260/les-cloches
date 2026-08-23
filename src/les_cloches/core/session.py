@@ -23,8 +23,13 @@ from .errors import LesClochesBusy, LesClochesTimeout, LesClochesUnavailable
 
 try:
     import fcntl
-except ImportError:  # Windows: recognized, but no commissioned lock/backend.
+except ImportError:  # Windows uses msvcrt; its desktop backend remains uncommissioned.
     fcntl = None
+
+try:
+    import msvcrt
+except ImportError:
+    msvcrt = None
 
 
 class SessionOwnership(Enum):
@@ -78,25 +83,31 @@ class TransactionLock:
     def acquire(self, deadline: float) -> None:
         if self.path is None:
             raise ValueError("TransactionLock requires a path")
-        if fcntl is None:
-            from .errors import UnsupportedPlatform
-
-            raise UnsupportedPlatform(
-                "Windows cross-process desktop locking is recognized but unverified "
-                "and unsupported; no lock or desktop action was attempted."
-            )
         self.path.parent.mkdir(parents=True, exist_ok=True)
-        lock_file = self.path.open("a+")
+        lock_file = self.path.open("a+b")
         while True:
             try:
-                fcntl.flock(lock_file.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+                if fcntl is not None:
+                    fcntl.flock(lock_file.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+                elif msvcrt is not None:
+                    lock_file.seek(0, os.SEEK_END)
+                    if lock_file.tell() == 0:
+                        lock_file.write(b"\0")
+                        lock_file.flush()
+                    lock_file.seek(0)
+                    msvcrt.locking(lock_file.fileno(), msvcrt.LK_NBLCK, 1)
+                else:
+                    raise LesClochesUnavailable("no cross-process file-locking backend is available")
                 lock_file.seek(0)
                 lock_file.truncate()
-                lock_file.write(f"pid={os.getpid()}\n")
+                lock_file.write(f"pid={os.getpid()}\n".encode("ascii"))
                 lock_file.flush()
                 self._file = lock_file
                 return
-            except BlockingIOError:
+            except (BlockingIOError, OSError) as exc:
+                if not isinstance(exc, BlockingIOError) and getattr(exc, "winerror", None) not in {33, 36} and getattr(exc, "errno", None) not in {11, 13}:
+                    lock_file.close()
+                    raise
                 remaining = deadline - time.monotonic()
                 if remaining <= 0:
                     lock_file.close()
@@ -109,7 +120,11 @@ class TransactionLock:
     def release(self) -> None:
         if self._file is not None:
             try:
-                fcntl.flock(self._file.fileno(), fcntl.LOCK_UN)
+                if fcntl is not None:
+                    fcntl.flock(self._file.fileno(), fcntl.LOCK_UN)
+                elif msvcrt is not None:
+                    self._file.seek(0)
+                    msvcrt.locking(self._file.fileno(), msvcrt.LK_UNLCK, 1)
             finally:
                 self._file.close()
                 self._file = None
@@ -143,6 +158,10 @@ def terminate_owned_or_existing(
     Give the process a bounded graceful-stop window, then use SIGKILL and
     confirm that the target is gone before returning to the recovery loop.
     """
+    if os.name == "nt":
+        _terminate_owned_or_existing_windows(owned_process, session, deadline, label)
+        return
+
     if owned_process is not None:
         session.recovery_target_pid = owned_process.pid
         try:
@@ -201,8 +220,33 @@ def terminate_owned_or_existing(
         session.existing_pid = None
     else:
         raise LesClochesUnavailable(
-            f"cannot restart pre-existing {label}: AT-SPI did not expose its process id"
+            f"cannot restart pre-existing {label}: accessibility did not expose its process id"
         )
+
+
+def _terminate_owned_or_existing_windows(
+    owned_process: "subprocess.Popen | None", session: SessionState, deadline: float, label: str
+) -> None:
+    from .windows import terminate_process_tree, wait_for_process_exit
+
+    process_id = owned_process.pid if owned_process is not None else session.existing_pid
+    if not process_id:
+        raise LesClochesUnavailable(
+            f"cannot restart pre-existing {label}: accessibility did not expose its process id"
+        )
+    if process_id == os.getpid():
+        raise LesClochesUnavailable(f"refusing to stop the current process while recovering {label}")
+    session.recovery_target_pid = process_id
+    graceful_deadline = _graceful_stop_deadline(deadline)
+    terminate_process_tree(process_id, graceful_deadline, label, force=False)
+    if not wait_for_process_exit(process_id, graceful_deadline):
+        session.recovery_forced = True
+        terminate_process_tree(process_id, deadline, label, force=True)
+        if not wait_for_process_exit(process_id, deadline):
+            raise LesClochesUnavailable(
+                f"{label} process tree {process_id} remained alive after forced termination"
+            )
+    session.existing_pid = None
 
 
 def _graceful_stop_deadline(deadline: float, maximum_grace: float = 5.0) -> float:

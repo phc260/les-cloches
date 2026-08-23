@@ -4,7 +4,7 @@ Claude Desktop's accessibility tree uses turn-level semantic structures —
 each exchange is an `article` node, and a fresh conversation is one with no
 articles yet. The assistant's owned response is the content of the last
 article whose body starts with a heading named "Claude responded:". None of
-this generalizes to ChatGPT's flatter turn model; see `apps/chatgpt.py`,
+this generalizes to ChatGPT's flatter turn model; see `apps/linux/chatgpt.py`,
 which owns its own, independent selectors.
 """
 
@@ -12,7 +12,7 @@ from __future__ import annotations
 
 import subprocess
 
-from ..accessibility.atspi import (
+from ...accessibility.atspi import (
     find_all,
     is_editable_entry,
     name,
@@ -23,11 +23,11 @@ from ..accessibility.atspi import (
     text,
     walk,
 )
-from ..core.deadlines import wait_for
-from ..core.errors import LesClochesError
-from ..core.recovery import HealthSnapshot, RendererHealth
-from ..core.session import SessionState, terminate_owned_or_existing
-from ..transport import TransactionState
+from ...core.deadlines import wait_for
+from ...core.errors import LesClochesError
+from ...core.recovery import HealthSnapshot, RendererHealth
+from ...core.session import SessionState, terminate_owned_or_existing
+from ...transport import TransactionState
 
 
 class ClaudeAdapter:
@@ -81,7 +81,7 @@ class ClaudeAdapter:
 
     # -- lifecycle -------------------------------------------------------
 
-    def launch(self) -> None:
+    def launch(self, deadline: float) -> None:
         self._owned_process = subprocess.Popen(
             ["claude-desktop", "--force-renderer-accessibility"],
             stdout=subprocess.DEVNULL,

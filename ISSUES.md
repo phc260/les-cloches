@@ -28,10 +28,10 @@ below); C3 onward failed instantly with "the pre-existing session was not
 restarted" — a different, misleading error that looked like the flag had no
 effect at all.
 
-**Resolution:** `Commission.send()` in both scripts now passes
+**Resolution:** `Commission.send()` in both X11 scripts now passes
 `allow_restart_existing_session=self.allow_restart_existing_session`
 through to `transport.send()`. Unit coverage verifies the forwarding behavior
-for both commissioning scripts.
+for both X11 commissioning scripts.
 
 ### 2. `uv run` cannot see the system AT-SPI/GDK bindings
 
@@ -40,10 +40,11 @@ failed immediately with `ModuleNotFoundError: No module named 'gi'`, even
 though `python3 -c "import gi"` succeeds using the system interpreter.
 
 **Cause:** `gi` (PyGObject, providing `Atspi` and `Gdk`) comes from the
-system package `python3-gi` / `gir1.2-atspi-2.0`, not from PyPI (see
-README's "Tests" section and `pyproject.toml`'s comment on
-`dependencies = []`). `uv sync` creates an isolated venv that does not
-inherit system site-packages, so anything importing `gi` fails inside it.
+system package `python3-gi` / `gir1.2-atspi-2.0`, not from PyPI (see the
+README's "Requirements" section and the dependency comment in
+`pyproject.toml`). The project's Windows-only PyPI dependency does not supply
+the Linux GI bindings. `uv sync` creates an isolated venv that does not inherit
+system site-packages, so anything importing `gi` fails inside it.
 
 **Resolution:** the README now gives a one-time environment bootstrap that uses the
 system interpreter and makes its distribution-provided packages visible:
@@ -53,9 +54,10 @@ uv venv --clear --python /usr/bin/python3 --system-site-packages
 uv sync --extra test
 ```
 
-After that, both tests and commissioning use `uv run`; an import smoke check
-is documented too. Verified in a fresh temporary environment against the
-system `gi` installation.
+After that, tests and commissioning run in an environment that can see the
+system bindings while keeping project dependencies synchronized. This was
+verified in a fresh temporary environment against the system `gi`
+installation.
 
 This remains a system dependency rather than a PyPI dependency; recreating
 `.venv` without `--system-site-packages` intentionally removes access to it.
@@ -95,7 +97,7 @@ same bounded escalation behavior.
 
 Unit coverage verifies graceful exit, escalation, post-`SIGKILL`
 confirmation, missing-PID failure, current-process protection, and the
-commissioning scripts' restart-flag propagation.
+X11 commissioning scripts' restart-flag propagation.
 
 Subsequent live Claude Desktop and ChatGPT Desktop transactions reached ready
 renderers and completed end to end. The destructive forced-restart branch is

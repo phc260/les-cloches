@@ -5,12 +5,12 @@ Claude Desktop's article-based accessibility tree carries much lower
 response-ownership risk than ChatGPT's flat, heading-delimited stream (see
 ARCHITECTURE.md), so this commissioning script is deliberately smaller than
 `commission_chatgpt_x11.py`: it covers the acceptance categories from the
-Les Cloches v0.1 proposal (discovery, input, submission, response ownership,
+Les Cloches v0.1 contract (discovery, input, submission, response ownership,
 completion, timeout/recovery, serialization) without re-deriving every
 ChatGPT-specific experiment.
 
-WARNING: this controls the real Claude Desktop window — mouse focus,
-keyboard input. Do not use the desktop while it runs.
+WARNING: this controls the real Claude Desktop window, including semantic
+focus and keyboard/clipboard input. Do not use the desktop while it runs.
 """
 
 from __future__ import annotations
@@ -25,7 +25,7 @@ from pathlib import Path
 
 from les_cloches import Claude, LesClochesTimeout
 from les_cloches import transport as lc_transport
-from les_cloches.apps.claude import ClaudeAdapter
+from les_cloches.apps.linux.claude import ClaudeAdapter
 from les_cloches.core.recovery import ensure_ready
 from les_cloches.core.session import SessionState
 from les_cloches.input.x11 import X11ClipboardInput
@@ -159,7 +159,11 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--only", nargs="*", default=[], help="experiment IDs, e.g. C1 C2 C3")
     parser.add_argument("--timeout", type=float, default=90.0)
-    parser.add_argument("--report", type=Path, default=Path("CLAUDE_X11_COMMISSIONING.json"))
+    parser.add_argument(
+        "--report",
+        type=Path,
+        default=Path(__file__).resolve().parent / "CLAUDE_X11_COMMISSIONING.json",
+    )
     parser.add_argument(
         "--allow-restart-existing-session",
         action="store_true",

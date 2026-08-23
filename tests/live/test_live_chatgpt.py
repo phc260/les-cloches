@@ -5,10 +5,13 @@ import pytest
 
 from les_cloches import ChatGPT
 
-pytestmark = pytest.mark.skipif(
-    os.environ.get("LES_CLOCHES_LIVE") != "1",
-    reason="set LES_CLOCHES_LIVE=1 to control the real ChatGPT Desktop GUI",
-)
+pytestmark = [
+    pytest.mark.hard,
+    pytest.mark.skipif(
+        os.environ.get("LES_CLOCHES_LIVE") != "1",
+        reason="set LES_CLOCHES_LIVE=1 to control the real ChatGPT Desktop GUI",
+    ),
+]
 
 
 @pytest.mark.live

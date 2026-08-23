@@ -26,10 +26,10 @@ class LesClochesUnavailable(LesClochesError):
 class UnsupportedPlatform(LesClochesError):
     """Les Cloches was asked to run write automation outside its supported platform.
 
-    v0.1 supports Linux/X11 only. Windows 11 is recognized but unverified
-    and unsupported; native Wayland write automation is unavailable under
-    the project's constraints. Les Cloches states this plainly instead of
-    silently degrading to a different, less-tested input path.
+    v0.1 supports Linux/X11 only. Windows 11 is recognized and has an
+    uncommissioned backend under development; native Wayland write automation
+    is unavailable under the project's constraints. Les Cloches states this
+    plainly instead of silently degrading to a different input path.
     """
 
 

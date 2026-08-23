@@ -4,7 +4,7 @@ ChatGPT Desktop's accessibility tree is flatter than Claude's: there is no
 turn-level container node. Turns are delimited by heading text ("You said:" /
 "ChatGPT said:") inside one long conversation stream, and the assistant's
 owned response is everything between the newest "You said:" heading and the
-next user turn. This adapter does not inherit from `apps/claude.py` — the two
+next user turn. This adapter does not inherit from `apps/linux/claude.py` — the two
 trees are materially different shapes, and forcing a shared base class would
 either paper over that difference or leave most of the base unused. See
 ARCHITECTURE.md.
@@ -16,7 +16,7 @@ import subprocess
 import time
 from dataclasses import dataclass
 
-from ..accessibility.atspi import (
+from ...accessibility.atspi import (
     attributes,
     find_all,
     name,
@@ -26,11 +26,11 @@ from ..accessibility.atspi import (
     safe,
     walk,
 )
-from ..core.deadlines import wait_for
-from ..core.errors import LesClochesError, LesClochesTimeout
-from ..core.recovery import HealthSnapshot, RendererHealth
-from ..core.session import SessionState, terminate_owned_or_existing
-from ..transport import TransactionState, wait_for_completion
+from ...core.deadlines import wait_for
+from ...core.errors import LesClochesError, LesClochesTimeout
+from ...core.recovery import HealthSnapshot, RendererHealth
+from ...core.session import SessionState, terminate_owned_or_existing
+from ...transport import TransactionState, wait_for_completion
 
 
 @dataclass(frozen=True)
@@ -135,7 +135,7 @@ class ChatGPTAdapter:
 
     # -- lifecycle -------------------------------------------------------
 
-    def launch(self) -> None:
+    def launch(self, deadline: float) -> None:
         self._owned_process = subprocess.Popen(
             ["chatgpt", "--force-renderer-accessibility"],
             stdout=subprocess.DEVNULL,

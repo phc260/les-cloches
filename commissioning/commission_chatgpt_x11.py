@@ -1,14 +1,15 @@
 #!/usr/bin/env python3
 """Run and record X1-X14 commissioning for ChatGPT Desktop on X11.
 
-This exercises `les_cloches.apps.chatgpt.ChatGPTAdapter` and
+This exercises `les_cloches.apps.linux.chatgpt.ChatGPTAdapter` and
 `les_cloches.input.x11.X11ClipboardInput` both directly (for structural
 experiments that need to inspect the accessibility tree) and through the
 public `les_cloches.ChatGPT` API (for end-to-end and concurrency
 experiments), matching what an external caller would actually use.
 
-WARNING: this controls the real ChatGPT Desktop window — mouse focus,
-keyboard input, and window geometry. Do not use the desktop while it runs.
+WARNING: this controls the real ChatGPT Desktop window, including semantic
+focus, keyboard/clipboard input, and window state. Do not use the desktop
+while it runs.
 """
 
 from __future__ import annotations
@@ -25,7 +26,7 @@ from pathlib import Path
 from les_cloches import ChatGPT, LesClochesTimeout
 from les_cloches import transport as lc_transport
 from les_cloches.accessibility.atspi import name, press_named_action, role
-from les_cloches.apps.chatgpt import ChatGPTAdapter
+from les_cloches.apps.linux.chatgpt import ChatGPTAdapter
 from les_cloches.core.recovery import ensure_ready
 from les_cloches.core.session import SessionState
 from les_cloches.input.x11 import X11ClipboardInput
@@ -291,7 +292,11 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--only", nargs="*", default=[], help="experiment IDs, e.g. X1 X2 X3")
     parser.add_argument("--timeout", type=float, default=90.0)
-    parser.add_argument("--report", type=Path, default=Path("CHATGPT_X11_COMMISSIONING.json"))
+    parser.add_argument(
+        "--report",
+        type=Path,
+        default=Path(__file__).resolve().parent / "CHATGPT_X11_COMMISSIONING.json",
+    )
     parser.add_argument(
         "--allow-restart-existing-session",
         action="store_true",

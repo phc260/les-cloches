@@ -1,8 +1,10 @@
 import pytest
 
-import les_cloches.apps.claude as claude_module
+import les_cloches.apps.linux.claude as claude_module
 from les_cloches.core.errors import LesClochesError
-from les_cloches.apps.claude import ClaudeAdapter
+from les_cloches.apps.linux.claude import ClaudeAdapter
+
+pytestmark = pytest.mark.easy
 
 
 class Node:

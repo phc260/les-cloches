@@ -66,7 +66,7 @@ class RecoverableApplication(Protocol):
     """The narrow contract `ensure_ready` needs from an application adapter."""
 
     def health_snapshot(self) -> HealthSnapshot: ...
-    def launch(self) -> None: ...
+    def launch(self, deadline: float) -> None: ...
     def terminate_for_recovery(self, session: SessionState, deadline: float) -> None: ...
     def existing_process_id(self) -> "int | None": ...
 
@@ -101,7 +101,7 @@ def ensure_ready(
     record_ownership(session, snapshot, app.existing_process_id())
 
     if snapshot.health is RendererHealth.PROCESS_ABSENT:
-        app.launch()
+        app.launch(deadline)
         session.ownership = SessionOwnership.BRIDGE_OWNED
         if _wait_ready(app, deadline, poll_interval):
             return
@@ -126,7 +126,7 @@ def ensure_ready(
     if deadline - time.monotonic() <= 0:
         raise LesClochesTimeout("deadline expired before recovery could begin")
     app.terminate_for_recovery(session, deadline)
-    app.launch()
+    app.launch(deadline)
     session.ownership = SessionOwnership.BRIDGE_OWNED
     if not _wait_ready(app, deadline, poll_interval):
         final_snapshot = app.health_snapshot()

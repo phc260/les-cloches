@@ -4,13 +4,11 @@ __pycache__/
 build/
 dist/
 wheels/
-*.egg-info
+*.egg-info/
 
 # Virtual environments
-.venv
+.venv/
 
-# Test / commissioning artifacts
+# Test artifacts
 .pytest_cache/
-*_X11_COMMISSIONING.json
-CLAUDE_X11_COMMISSIONING.json
-CHATGPT_X11_COMMISSIONING.json
+.pytest-tmp-*/

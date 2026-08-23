@@ -11,6 +11,11 @@ from les_cloches.core.session import (
     terminate_owned_or_existing,
 )
 
+pytestmark = [
+    pytest.mark.medium,
+    pytest.mark.skipif(os.name == "nt", reason="POSIX signal recovery coverage"),
+]
+
 
 def test_preexisting_process_is_waited_for_before_relaunch(monkeypatch):
     pid = 4242

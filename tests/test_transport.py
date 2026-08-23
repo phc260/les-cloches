@@ -8,6 +8,8 @@ from les_cloches.core.recovery import HealthSnapshot, RendererHealth
 from les_cloches.core.session import TransactionLock
 from les_cloches.transport import TransactionState, send
 
+pytestmark = pytest.mark.medium
+
 
 class FakeAdapter:
     desktop_label = "Fake Desktop"
@@ -20,7 +22,7 @@ class FakeAdapter:
     def health_snapshot(self):
         return HealthSnapshot(RendererHealth.READY, True, True, True, True, True, True, 0)
 
-    def launch(self):
+    def launch(self, deadline):
         pass
 
     def terminate_for_recovery(self, session, deadline):

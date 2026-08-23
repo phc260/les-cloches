@@ -7,7 +7,7 @@ import argparse
 import time
 
 from les_cloches.accessibility.atspi import name, role
-from les_cloches.apps.claude import ClaudeAdapter
+from les_cloches.apps.linux.claude import ClaudeAdapter
 from les_cloches.input.x11 import X11ClipboardInput
 
 

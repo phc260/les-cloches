@@ -1,4 +1,8 @@
-from les_cloches.apps.chatgpt import ChatGPTAdapter, ChatGPTSemantics
+import pytest
+
+from les_cloches.apps.linux.chatgpt import ChatGPTAdapter, ChatGPTSemantics
+
+pytestmark = pytest.mark.easy
 
 
 class Node:

@@ -1,10 +1,8 @@
 #!/usr/bin/env python3
 """Dump an application's AT-SPI subtree without assuming node labels or roles.
 
-Generalizes the two donor scripts `dump_atspi.py` (Claude, full text) and
-`probe_chatgpt_atspi.py` (ChatGPT, redacted text) into one tool: pass
-`--application` to select the target and `--redact-text` to omit accessible
-text values (useful when a conversation may contain sensitive content).
+Pass `--application` to select the target and `--redact-text` to omit
+accessible text values when a conversation may contain sensitive content.
 """
 
 from __future__ import annotations

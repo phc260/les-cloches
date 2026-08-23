@@ -4,10 +4,13 @@ import pytest
 
 from les_cloches import Claude
 
-pytestmark = pytest.mark.skipif(
-    os.environ.get("LES_CLOCHES_LIVE") != "1",
-    reason="set LES_CLOCHES_LIVE=1 to control the real Claude Desktop GUI",
-)
+pytestmark = [
+    pytest.mark.hard,
+    pytest.mark.skipif(
+        os.environ.get("LES_CLOCHES_LIVE") != "1",
+        reason="set LES_CLOCHES_LIVE=1 to control the real Claude Desktop GUI",
+    ),
+]
 
 
 @pytest.mark.live
